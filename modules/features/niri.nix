@@ -6,6 +6,13 @@
 		};
 	};
 	perSystem = { pkgs, lib, self', ... }: {
+		packages.first-window-width = pkgs.writeShellApplication {
+			name = "first-window-width";
+			runtimeInputs = [ pkgs.python3 pkgs.niri ];
+			text = ''
+				exec python3 ${./first-window-width.py}
+			'';
+		};
 		packages.myNiri = inputs.wrapper-modules.wrappers.niri.wrap {
 			inherit pkgs;
 			settings = let
@@ -24,6 +31,7 @@
 				workspaces = lib.genAttrs (map workspace keys) (_: {});
 				spawn-at-startup = [
 					(lib.getExe self'.packages.myNoctalia)
+					(lib.getExe self'.packages.first-window-width)
 				];
 				input.keyboard = {
 					xkb.layout = "dk";
