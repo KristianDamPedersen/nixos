@@ -14,6 +14,7 @@ in
 				self.nixosModules.passwordManager
 				self.nixosModules.librewolf
 				self.nixosModules.kitty
+				self.nixosModules.noctaliaGreeter
 			];
 		
 		nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -85,7 +86,6 @@ in
 		};
 
 		# Enable the Gnome desktop
-		services.displayManager.gdm.enable = true;
 		services.desktopManager.gnome.enable = true;
 
 		# Allow unfree packages
