@@ -1,0 +1,84 @@
+Encrypted Org Git sync
+
+Files live with the personal Doom configuration. The worker requires Python 3,
+Git with merge-tree --write-tree support, and an authenticated GitHub CLI.
+Ordinary sync never decrypts notes. The Emacs conflict editor decrypts into
+memory and saves its result through EasyPG.
+
+Initial setup
+
+Use an empty private GitHub repository. Run this once after installing the files:
+
+  python3 ~/.config/doom/bin/org-sync.py --root ~/org init OWNER/REPOSITORY --device laptop
+
+This creates the local repository on devices/laptop, installs commit/push
+checks, and uploads the initial main and device branches. It refuses a remote
+that already has commits. The only tracked files are binary .org.gpg files and
+the exact .gitignore/.gitattributes policy supplied by the worker. Hidden paths,
+symlinks, executable files, and plaintext content are rejected.
+
+After a partial setup failure, preserve the local repository and inspect the
+error. Do not delete the repository to retry. The local commit and encrypted
+files remain available; authentication or a rejected push can be repaired.
+
+Restart Emacs to load org-sync.el and enable my-org-sync-mode. The mode is inert
+until ~/org/.git exists. It checks every 60 seconds and starts work after at
+least 10 seconds idle. M-x my-org-sync-now triggers an immediate attempt.
+M-x my-org-sync-mode toggles the timer. Disabling the timer does not cancel an
+already running operation. Closing Emacs does not guarantee a final upload.
+
+The worker commits saved files even offline, then fetches and pushes when it can
+connect. Unsaved buffer contents never enter Git. There is no force push, stash,
+or reset of working files. A pending incoming update waits for unmodified
+buffers and a clean working directory. Stale decrypted buffers cannot be edited
+or saved; they reload on the next command in that buffer. Deleted files retain
+their old buffer contents and require an explicit decision to close or recover.
+
+Each device must have its own devices/NAME branch. The desktop integrates all
+origin/devices/* branches through GitHub PRs against main. It merges compatible
+changes and reports URLs for conflicts. GitHub branch protections may defer a
+merge and remain authoritative. Do not enable automatic deletion of PR head
+branches in the GitHub repository; device branches persist between syncs.
+
+Conflict resolution
+
+1. M-x my-org-sync-resolve-pr, then enter the PR number from the notification.
+   This prepares an encrypted detached worktree inside .git/org-sync-resolutions.
+   Background sync pauses while this Emacs resolution session is active.
+2. M-x my-org-sync-resolve-file. Choose a conflicted file. Ediff shows the device,
+   main, and common ancestor versions, decrypted in memory. A missing version in
+   an add/delete conflict appears as an empty buffer.
+3. Edit/review Ediff's merged result buffer. Remove conflict markers, then run
+   M-x my-org-sync-stage-resolution in that result buffer. EasyPG encrypts the
+   saved result before Git stages it. Quit Ediff and repeat for other files.
+   To accept a deletion, use M-x my-org-sync-delete-resolution instead.
+4. M-x my-org-sync-finish-resolution commits and pushes the resolved device
+   branch. The next normal sync attempts the PR merge and updates local files.
+
+After an Emacs restart, M-x my-org-sync-resume-pr resumes the encrypted worktree.
+Avoid editing the same notes on another device during resolution. A concurrent
+push is rejected safely; it needs a fresh integration rather than a force push.
+The encrypted resolution worktrees remain available after finishing. Close
+Ediff/source buffers when done. They contain decrypted text only in memory.
+
+Checks and limitations
+
+The envelope check parses binary OpenPGP packets. It proves structural
+formatting, not cryptographic integrity, recipient identity, or decryptability.
+Keep the separate GPG recovery test and key backups. Git exposes filenames,
+file sizes and commit metadata. Repository hooks can be bypassed by a person;
+the sync worker independently checks the history it uploads. Private GitHub
+storage does not replace backups of excluded supporting files.
+
+The worker uses a lock to serialize its own operations. Avoid simultaneous
+manual Git operations or other programs overwriting notes during an update.
+Only this Emacs process coordinates its open buffers. Network failures retry
+at the next idle check. Errors appear in *Messages* without note contents.
+
+Tests
+
+  python3 -m unittest discover -s ~/.config/doom/tests -p test_org_sync.py
+  emacs --batch -Q -l ~/.config/doom/tests/org-sync-test.el -f ert-run-tests-batch-and-exit
+
+The tests use disposable repositories and synthetic OpenPGP envelopes. They do
+not decrypt personal notes or contact GitHub.

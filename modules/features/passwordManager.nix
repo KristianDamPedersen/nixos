@@ -12,9 +12,7 @@
 */
 { self, inputs, ...} : {
 	flake.nixosModules.passwordManager = { pkgs, ... }: {
-		environment.systemPackages = [ 
-			pkgs._1password-gui
-			pkgs._1password-cli
-		];
+                                       programs._1password.enable = true;
+                                       programs._1password-gui.enable = true;
 	};
 }

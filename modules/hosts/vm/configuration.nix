@@ -15,6 +15,7 @@ in
 				self.nixosModules.librewolf
 				self.nixosModules.kitty
 				self.nixosModules.noctaliaGreeter
+                self.nixosModules.emacs
 			];
 		
 		nix.settings.experimental-features = [ "nix-command" "flakes" ];
