@@ -79,7 +79,6 @@ in
 		packages = with pkgs; 
 			[
 				neovim
-				firefox
 				codex
 			];
 		};

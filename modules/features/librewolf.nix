@@ -5,6 +5,7 @@
 		Features:
 		* Enables dark mode
 		* 1Password extension
+		* Configures librewolf to be the default browser
 
 		NOTE: The browser installs extensions on launch, so their versions are not pinned by flake.lock.
 	*/
@@ -30,5 +31,17 @@
 				};
 			})
 		];
+
+		xdg.mime = {
+			enable = true;
+			defaultApplications = {
+				"text/html" = "librewolf.desktop";
+				"application/xhtml+xml" = "librewolf.desktop";
+				"x-scheme-handler/http" = "librewolf.desktop";
+				"x-scheme-handler/https" = "librewolf.desktop";
+			};
+		};
+
+		environment.sessionVariables.BROWSER = "librewolf";
 	};
 }
