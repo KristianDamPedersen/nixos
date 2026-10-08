@@ -100,6 +100,8 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 ;;
+(setenv "NOTMUCH_CONFIG" "/etc/notmuch-config")
+
 (defconst my-emacs-state-directory
   (expand-file-name
    "emacs/"
@@ -128,7 +130,7 @@
         (setq sendmail-program
               (expand-file-name "bin/gmail-sync.sh" doom-user-dir)
               message-send-mail-function #'message-send-mail-with-sendmail
-              message-sendmail-extra-arguments '("send" "--quiet" "-t")
+              message-sendmail-extra-arguments '("send" "--quiet")
               message-sendmail-f-is-evil t
               notmuch-fcc-dirs nil))
 
@@ -198,8 +200,10 @@
 ;; Gmail sync via SecretSpec controlled credentials
 (after! notmuch
   (setq +notmuch-sync-backend
-        (shell-quote-argument
-         (expand-file-name "bin/gmail-sync.sh" doom-user-dir))))
+        (concat
+         (shell-quote-argument
+          (expand-file-name "bin/gmail-sync.sh" doom-user-dir))
+         " sync --limit 500")))
 
 ;; Enable Org files encryption
 (load! "org-encryption")

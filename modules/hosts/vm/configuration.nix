@@ -16,6 +16,7 @@ in
 				self.nixosModules.kitty
                 		self.nixosModules.emacs
 				self.nixosModules.loginScreen
+                self.nixosModules.mail
 			];
 		
 		nix.settings.experimental-features = [ "nix-command" "flakes" ];

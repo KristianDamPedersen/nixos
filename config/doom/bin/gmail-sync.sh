@@ -2,6 +2,11 @@
 set -euo pipefail
 umask 077
 
+# Emacs prepends this sendmail compatibility flag.
+if [[ "${1:-}" == "-oi" ]]; then
+    shift
+fi
+
 action=${1:-sync}
 if (( $# > 0 )); then
     shift
@@ -23,11 +28,13 @@ credentials="$repository/.credentials.gmailieer.json"
 secret() {
     secretspec --file "$manifest" "$@" \
         --profile default \
-        --provider onepassword://Private
+        --provider onepassword://Private 9>&-
 }
 
 cd "$repository"
 
+# Keep the lock in this shell; close fd 9 for children so background daemons
+# cannot keep it locked after the wrapper exits.
 # Prevent concurrent runs of this wrapper
 exec 9> .secretspec-sync.lock
 flock -n 9 || {
@@ -59,7 +66,7 @@ fi
 (set -o noclobber; cat "$snapshot" > "$credentials")
 
 sync_status=0
-gmi "$action" "$@" || sync_status=$?
+gmi "$action" "$@" 9>&- || sync_status=$?
 
 if [[ -e "$credentials.new" ]]; then
     echo "Lieer left an incomplete credential update; keeping files for recovery." >&2
@@ -86,5 +93,5 @@ if (( sync_status != 0 )); then
 fi
 
 if [[ "$action" == sync ]]; then
-    notmuch new
+    notmuch new 9>&-
 fi
