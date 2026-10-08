@@ -12,6 +12,7 @@ in
 				self.nixosModules.github
 				self.nixosModules.git
 				self.nixosModules.passwordManager
+				self.nixosModules.librewolf
 			];
 		
 		nix.settings.experimental-features = [ "nix-command" "flakes" ];
