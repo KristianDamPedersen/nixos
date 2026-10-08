@@ -95,7 +95,7 @@
       "compactLockScreen": true,
       "lockScreenAnimations": false,
       "lockOnSuspend": true,
-      "showSessionButtonsOnLockScreen": true,
+      "showSessionButtonsOnLockScreen": false,
       "showHibernateOnLockScreen": false,
       "enableLockScreenMediaControls": false,
       "enableShadows": false,
@@ -115,7 +115,7 @@
       "clockFormat": "HH:mm",
       "passwordChars": false,
       "lockScreenMonitors": [],
-      "lockScreenBlur": 0,
+      "lockScreenBlur": 0.5,
       "lockScreenTint": 0,
       "keybinds": {
         "keyUp": [

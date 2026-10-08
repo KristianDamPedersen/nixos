@@ -15,6 +15,26 @@
 						--replace-fail \
 						'Quickshell.shellDir + "/Assets/Wallpaper/noctalia.png"' \
 						'"${../../backgrounds/clouds.jpg}"'
+
+					# Keep the lock-screen password panel compact on every display.
+					substituteInPlace \
+						"$out/share/noctalia-shell/Modules/LockScreen/LockScreenPanel.qml" \
+						--replace-fail \
+						'width: Settings.data.general.showHibernateOnLockScreen ? 860 : 810' \
+						'width: Math.min(420, parent.width - 48)'
+
+					# Use the user's name and quieter typography in the header.
+					substituteInPlace \
+						"$out/share/noctalia-shell/Modules/LockScreen/LockScreenHeader.qml" \
+						--replace-fail \
+						'text: I18n.tr("system.welcome-back") + " " + HostService.displayName + "!"' \
+						'text: HostService.displayName' \
+						--replace-fail \
+						'pointSize: Style.fontSizeXL' \
+						'pointSize: Style.fontSizeM' \
+						--replace-fail \
+						'pointSize: Style.fontSizeXXL' \
+						'pointSize: Style.fontSizeXL'
 				'';
 			});
 
