@@ -207,7 +207,28 @@
         "flake-parts": "flake-parts",
         "import-tree": "import-tree",
         "nixpkgs": "nixpkgs",
+        "silentSDDM": "silentSDDM",
         "wrapper-modules": "wrapper-modules"
+      }
+    },
+    "silentSDDM": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790785664,
+        "narHash": "sha256-TNGAElCnjIA4OzTtn0VuCk6pXKd92kBkz+5NjHLwbkM=",
+        "owner": "uiriansan",
+        "repo": "SilentSDDM",
+        "rev": "d32ebc060ee0f832cf2a2ea4c91d96582d3f31ce",
+        "type": "github"
+      },
+      "original": {
+        "owner": "uiriansan",
+        "repo": "SilentSDDM",
+        "type": "github"
       }
     },
     "wrapper-modules": {

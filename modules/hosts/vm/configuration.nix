@@ -14,8 +14,8 @@ in
 				self.nixosModules.passwordManager
 				self.nixosModules.librewolf
 				self.nixosModules.kitty
-				self.nixosModules.noctaliaGreeter
-                self.nixosModules.emacs
+                		self.nixosModules.emacs
+				self.nixosModules.loginScreen
 			];
 		
 		nix.settings.experimental-features = [ "nix-command" "flakes" ];
