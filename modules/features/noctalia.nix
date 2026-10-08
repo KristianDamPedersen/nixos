@@ -10,6 +10,11 @@
 					cp ${pkgs.writeText "Rose-Pine-Moon.json" (builtins.toJSON
 						(builtins.fromJSON (builtins.readFile ./noctalia.json)).rosePineMoon)} \
 						"$out/share/noctalia-shell/Assets/ColorScheme/Rose-Pine-Moon/Rose-Pine-Moon.json"
+					substituteInPlace \
+						"$out/share/noctalia-shell/Services/UI/WallpaperService.qml" \
+						--replace-fail \
+						'Quickshell.shellDir + "/Assets/Wallpaper/noctalia.png"' \
+						'"${../../backgrounds/clouds.jpg}"'
 				'';
 			});
 

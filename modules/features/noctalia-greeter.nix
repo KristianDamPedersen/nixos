@@ -3,6 +3,8 @@
 		moon = (builtins.fromJSON (builtins.readFile ./noctalia.json)).rosePineMoon.dark;
 	in {
 		services.displayManager.gdm.enable = false;
+		environment.etc."backgrounds/clouds.jpg".source =
+			../../backgrounds/clouds.jpg;
 
 		services.displayManager.noctalia-greeter = {
 			enable = true;
@@ -15,6 +17,10 @@
 				appearance = {
 					scheme = "Synced";
 					theme_mode = "dark";
+					wallpaper = {
+						path = "/etc/backgrounds/clouds.jpg";
+						fill_mode = "crop";
+					};
 					corner_radius_scale = 0.3;
 					password_style = "default";
 					palette = {

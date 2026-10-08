@@ -193,7 +193,7 @@
     "wallpaper": {
       "enabled": true,
       "overviewEnabled": false,
-      "directory": "/home/kristian/Pictures/Wallpapers",
+      "directory": "/etc/backgrounds",
       "monitorDirectories": [],
       "enableMultiMonitorDirectories": false,
       "showHiddenFiles": false,
