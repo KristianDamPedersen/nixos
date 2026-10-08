@@ -22,6 +22,11 @@
 				tab_bar_edge = "bottom";
 				tab_bar_style = "powerline";
 				tab_powerline_style = "slanted";
+
+				# Smooth cursor
+				cursor_trail = 1;
+				cursor_trail_decay = "0.1 0.25";
+				cursor_trail_start_threshold = 1;
 			};
 
 			extraConfig = ''
