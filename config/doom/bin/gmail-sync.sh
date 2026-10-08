@@ -59,7 +59,7 @@ fi
 (set -o noclobber; cat "$snapshot" > "$credentials")
 
 sync_status=0
-gmi "$action" "$@" || sync_status=$
+gmi "$action" "$@" || sync_status=$?
 
 if [[ -e "$credentials.new" ]]; then
     echo "Lieer left an incomplete credential update; keeping files for recovery." >&2

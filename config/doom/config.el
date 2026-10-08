@@ -127,7 +127,7 @@
 (after! notmuch
         (setq sendmail-program
               (expand-file-name "bin/gmail-sync.sh" doom-user-dir)
-              message-send-email-function #'message-send-mail-with-sendmail
+              message-send-mail-function #'message-send-mail-with-sendmail
               message-sendmail-extra-arguments '("send" "--quiet" "-t")
               message-sendmail-f-is-evil t
               notmuch-fcc-dirs nil))
@@ -231,3 +231,7 @@
     (+org/refile-to-current-file arg file))
   (advice-add '+org/refile-to-file
               :override #'my-org-refile-to-file))
+
+;; My identity
+(setq user-full-name "KristianDamPedersen"
+      user-mail-address "kristian.dam.pedersen@gmail.com")
