@@ -3,7 +3,6 @@
 		imports = [ inputs.silentSDDM.nixosModules.default ];
 
 		services.displayManager.gdm.enable = false;
-		services.displayManager.noctalia-greeter.enable = false;
 		services.displayManager.defaultSession = "niri";
 
 		environment.etc."backgrounds/clouds.jpg".source =
