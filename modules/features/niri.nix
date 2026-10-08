@@ -43,7 +43,7 @@
 						"${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle";
 					
 					# Spawn terminal
-					"Mod+Return".spawn-sh = lib.getExe pkgs.kitty;
+					"Mod+Return".spawn-sh = lib.getExe self'.packages.myKitty;
 
 					# Close, float and fullscreen
 					"Mod+W".close-window = _: {};
