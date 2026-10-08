@@ -15,6 +15,8 @@
 				appearance = {
 					scheme = "Synced";
 					theme_mode = "dark";
+					corner_radius_scale = 0.3;
+					password_style = "default";
 					palette = {
 						primary = moon.mPrimary;
 						on_primary = moon.mOnPrimary;
@@ -35,7 +37,7 @@
 					};
 					hide_logo = true;
 					scheme_selector_position = "hidden";
-					power_buttons_position = "bottom_right";
+					power_buttons_position = "bottom-right";
 				};
 
 				clock = {
