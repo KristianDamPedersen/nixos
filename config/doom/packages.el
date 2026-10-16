@@ -68,3 +68,13 @@
 (package! evil-terminal-cursor-changer
   :recipe (:host github
                 :repo "7696122/evil-terminal-cursor-changer"))
+
+;; Theme package
+(package! autothemer)
+
+;; Rose pine themes
+(package! rose-pine-moon-theme
+  :recipe (:host github
+           :repo "thongpv87/rose-pine-emacs"
+           :files ("rose-pine-moon-theme.el"))
+  :pin "adcf6f8fe719884f7e32acb9130bdbcaccd6c4c9")
