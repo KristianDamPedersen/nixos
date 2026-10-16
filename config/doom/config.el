@@ -259,3 +259,11 @@
   :demand t
   :config
   (etcc-on))
+
+;; Nix language support
+(after! eglot
+  ;; Explicitely use nil for both Nix modes.
+  (add-to-list 'eglot-server-programs
+               '((nix-mode nix-ts-mode) . ("nil"))))
+(setq-default eglot-workspace-configuration
+              '(:nil (:formatting (:command ["nixfmt"]))))

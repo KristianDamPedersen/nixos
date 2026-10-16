@@ -1,19 +1,19 @@
 /*
-	Password manager configuration
+  	Password manager configuration
 
-	I currently use 1Password.
+  	I currently use 1Password.
 
-	Includes:
-		* 1Password GUI
-		* 1Password CLI
+  	Includes:
+  		* 1Password GUI
+  		* 1Password CLI
 
-	Authenticate after rebuilding with:
-		gh auth logi
+  	Authenticate after rebuilding with:
+  		gh auth logi
 */
-{ self, inputs, ...} : {
-	flake.nixosModules.passwordManager = { pkgs, ... }: {
-                                       programs._1password.enable = true;
-                                       programs._1password-gui.enable = true;
-                                       programs._1password-gui.polkitPolicyOwners = [ "kristian" ];
-	};
+{ self, inputs, ... }: {
+  flake.nixosModules.passwordManager = { pkgs, ... }: {
+    programs._1password.enable = true;
+    programs._1password-gui.enable = true;
+    programs._1password-gui.polkitPolicyOwners = [ "kristian" ];
+  };
 }
