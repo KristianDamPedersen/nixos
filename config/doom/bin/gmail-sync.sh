@@ -62,7 +62,9 @@ if [[ ! -e .gmailieer.json ]]; then
 fi
 
 # Reapply on each run so an interrupted initialization is recoverable.
-gmi set --no-remove-local-messages 9>&-
+# Emacs treats any sendmail output as failure, even with a zero exit status.
+# `gmi set` always prints settings; keep diagnostics on stderr visible.
+gmi set --no-remove-local-messages > /dev/null 9>&-
 
 # Opening mail only needs local initialization.
 if [[ "$action" == init ]]; then
