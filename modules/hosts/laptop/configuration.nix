@@ -1,5 +1,9 @@
-{ self, ... }: {
+{ self, withSystem, ... }: {
 	flake.nixosModules.laptopConfiguration = { pkgs, lib, ... }:
+		let
+			self' = withSystem pkgs.stdenv.hostPlatform.system ({ self', ...}: self');
+		in
+		
 {
 		imports =
 			[ # Include the results of the hardware scan.
@@ -14,6 +18,13 @@
 				self.nixosModules.loginScreen
                 self.nixosModules.mail
 			];
+		
+		# Niri rendering override to fix slow external display and screen flickering
+		programs.niri.package = lib.mkForce (
+			self'.packages.myNiri.wrap {
+				settings.debug.render-drm-device = "/dev/dri/by-path/pci-0000:01:00.0-render";
+			}
+		);
 		
 		nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
