@@ -17,9 +17,10 @@ runtime enforcement, resilience or compliance.
 
 ## Status and evidence
 
-All requirements below are **proposed for internal IT approval**. Their
-implementation and effectiveness have not yet been assessed. Inclusion in
-this document is not evidence that a control is implemented.
+All requirements below are **proposed for internal IT approval**. Implementation
+and verification progress is recorded below; requirements without a progress
+entry have not yet been assessed. Inclusion in the requirements register is
+not evidence that a control is implemented.
 
 For each requirement, record:
 
@@ -65,6 +66,17 @@ an approved restricted location; never put secrets or private keys here.
 | INC-01 | Establish procedures for theft, suspected compromise, credential revocation and reporting to IT. | Incident runbook and tabletop exercise. |
 | LIFE-01 | Support onboarding, access removal, device reassignment and secure disposal. | Lifecycle procedures and verification checklist. |
 | ASSURE-01 | Verify the deployed machine against the approved baseline regularly and after significant changes. | Dated compliance report identifying failures and exceptions. |
+
+## Implementation progress
+
+- **LOCK-01 — Automatic idle locking implemented (2026-10-16).**
+  `modules/features/noctalia.json` enables idle handling with locking after
+  300 seconds, screen power-off after 600 seconds and suspend after 1800 seconds.
+  Locking on suspend is also configured (`general.lockOnSuspend = true`).
+  The user reports automatic screen locking works after applying the change.
+  Separate suspend/resume authentication testing, coverage of other desktop
+  sessions, deployed revision evidence and internal IT approval of the timeout
+  remain outstanding; this does not yet establish full LOCK-01 verification.
 
 ## Decisions requiring internal IT agreement
 
