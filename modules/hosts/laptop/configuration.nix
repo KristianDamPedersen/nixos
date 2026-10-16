@@ -19,6 +19,7 @@
         self.nixosModules.loginScreen
         self.nixosModules.emacs
         self.nixosModules.mail
+        self.nixosModules.codex
       ];
 
       # Niri rendering override to fix slow external display and screen flickering
@@ -107,7 +108,6 @@
         ];
         packages = with pkgs; [
           neovim
-          codex
         ];
       };
 
