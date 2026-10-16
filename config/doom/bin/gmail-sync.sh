@@ -13,9 +13,9 @@ if (( $# > 0 )); then
 fi
 
 case "$action" in
-    sync|send) ;;
+    init|sync|send) ;;
     *)
-        echo "Expected sync or send." >&2
+        echo "Expected init, sync or send." >&2
         exit 2
         ;;
 esac
@@ -31,6 +31,8 @@ secret() {
         --provider onepassword://Private 9>&-
 }
 
+export NOTMUCH_CONFIG=/etc/notmuch-config
+mkdir -p "$repository"
 cd "$repository"
 
 # Keep the lock in this shell; close fd 9 for children so background daemons
@@ -49,6 +51,23 @@ for path in "$credentials" "$credentials.new"; do
         exit 1
     fi
 done
+
+# Prepare the local database and Lieer repositoryunder the existing lock.
+if [[ ! -d "$HOME/.mail/.notmuch" ]]; then
+    notmuch new 9>&-
+fi
+
+if [[ ! -e .gmailieer.json ]]; then
+    gmi init --no-auth kristian.dam.pedersen@gmail.com 9>&-
+fi
+
+# Reapply on each run so an interrupted initialization is recoverable.
+gmi set --no-remove-local-messages 9>&-
+
+# Opening mail only needs local initialization.
+if [[ "$action" == init ]]; then
+    exit 0
+fi
 
 snapshot=$(mktemp "$repository/.secretspec-credentials.XXXXXX")
 trap 'rm -f -- "$snapshot"' EXIT

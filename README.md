@@ -170,10 +170,7 @@ Use `SPC o s` afterward to publish local timed reservations and fetch events.
 `SPC o c` opens the visual week; `SPC o w` plans the week.
 
 ## 6. Gmail
-
-```bash
-export NOTMUCH_CONFIG=/etc/notmuch-config
-gmail-init
+> The Gmail wrapper initializes the local Notmuch database and Lieer repository automatically on its first sync or send.
 ```
 
 In Emacs, evaluate with `M-:`:

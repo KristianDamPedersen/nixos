@@ -205,6 +205,19 @@
           (expand-file-name "bin/gmail-sync.sh" doom-user-dir))
          " sync --limit 500")))
 
+;; Gmail initialization
+(defun my-notmuch-ensure-initialized (&rest _)
+  "Prepare the local mailbox before opening Doom's mail workspace."
+  (let ((script (expand-file-name "bin/gmail-sync.sh" doom-user-dir))
+        (default-directory (expand-file-name "~/")))
+    (with-temp-buffer
+      (let ((status (call-process "bash" nil '(t t) nil script "init")))
+        (unless (and (integerp status) (zerop status))
+          (user-error "Mail initialization failed: %s"
+                      (string-trim (buffer-string))))))))
+
+(advice-add '=notmuch :before #'my-notmuch-ensure-initialized)
+
 ;; Enable Org files encryption
 (load! "org-encryption")
 (setq plstore-encrypt-to my-org-encryption-recipients)
