@@ -239,3 +239,6 @@
 ;; My identity
 (setq user-full-name "KristianDamPedersen"
       user-mail-address "kristian.dam.pedersen@gmail.com")
+
+;; Hide the window title bar.
+(add-to-list 'default-frame-alist '(undecorated . t))
