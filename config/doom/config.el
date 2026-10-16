@@ -245,3 +245,17 @@
 
 ;; Match Kitty's steady cursor
 (blink-cursor-mode -1)
+
+;; Enable Emacs to dictate the Kitty cursor style
+(after! evil
+  (setq evil-normal-state-cursor 'box
+        evil-insert-state-cursor 'bar
+        evil-visual-state-cursor 'hbar
+        evil-replace-state-cursor 'hbar
+        evil-emacs-state-cursor 'box))
+(use-package! evil-terminal-cursor-changer
+  :after evil
+  :unless (display-graphic-p)
+  :demand t
+  :config
+  (etcc-on))

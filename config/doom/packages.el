@@ -64,3 +64,7 @@
 (package! org-timeblock
 :recipe (:host github :repo "ichernyshovvv/org-timeblock")
 :pin "e61e5734b49f933ed178029f804a0499f3308e1e")
+
+(package! evil-terminal-cursor-changer
+  :recipe (:host github
+                :repo "7696122/evil-terminal-cursor-changer"))
