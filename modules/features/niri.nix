@@ -59,6 +59,19 @@
               xkb.layout = "dk";
             };
             layout.gaps = 5;
+
+            layout.focus-ring = {
+              active-color = "#ea9a97"; # Rose
+              inactive-color = "#44415a"; # Highlight medium
+            };
+
+            window-rules = [
+              {
+                # Draw borders around windows without filling behind them.
+                draw-border-with-background = false;
+              }
+            ];
+
             binds = {
               # Spawn launcher
               "Mod+Space".spawn-sh = "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle";
