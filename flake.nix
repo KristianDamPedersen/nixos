@@ -26,6 +26,11 @@
 
       inputs.doomemacs-modules.url = "github:doomemacs/modules/897f815447112bc6e12e0aaf63aa5435b810344b";
     };
+
+    herdr = {
+      url = "github:herdrdev/herdr/v0.9.5";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
