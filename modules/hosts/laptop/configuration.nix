@@ -16,6 +16,7 @@
 				self.nixosModules.librewolf
 				self.nixosModules.kitty
 				self.nixosModules.loginScreen
+				self.nixosModules.emacs
                 self.nixosModules.mail
 			];
 		
