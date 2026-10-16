@@ -11,7 +11,6 @@
 				self.nixosModules.passwordManager
 				self.nixosModules.librewolf
 				self.nixosModules.kitty
-                		self.nixosModules.emacs
 				self.nixosModules.loginScreen
                 self.nixosModules.mail
 			];
@@ -43,7 +42,7 @@
                         device = "/swapfile";
 
                         # ABOUT 50% of your RAM, expressed in MiB.
-                        size = builtins.throw "Replace with swap size: ABOUT 50% of your RAM in MiB";
+                        size = 8 * 1024;
                     }
         ];
 
@@ -92,6 +91,21 @@
 			[
 				neovim
 				codex
+			];
+		};
+
+		# Enable printer discovery
+		services.avahi = {
+			enable = true;
+			nssmdns4 = true;
+			openFirewall = true;
+		};
+
+		services.printing = {
+			enable = true;
+			drivers = with pkgs; [
+				cups-filters
+				cups-browsed
 			];
 		};
 

@@ -9,7 +9,7 @@
 
         disko.devices.disk.main = {
             type = "disk";
-            device = "/dev/disk/by-id/REPLACE_WITH_LAPTOP_DISK";
+            device = "/dev/nvme0n1";
 
             content = {
                 type = "gpt";
