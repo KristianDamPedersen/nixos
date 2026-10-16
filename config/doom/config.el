@@ -242,3 +242,6 @@
 
 ;; Hide the window title bar.
 (add-to-list 'default-frame-alist '(undecorated . t))
+
+;; Match Kitty's steady cursor
+(blink-cursor-mode -1)

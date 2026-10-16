@@ -1,5 +1,5 @@
 { inputs, withSystem, ... }: {
-  perSystem = { pkgs, lib, ... }:
+  perSystem = { pkgs, lib, self', ... }:
             let
                 doomDir = pkgs.runCommand "personal-doom-config" {
                         nativeBuildInputs = [
@@ -85,6 +85,26 @@
             in {
                packages.myEmacs = doomPackages.emacsWithDoom;
 
+               packages.emacs-kitty = pkgs.writeShellScriptBin "emacs-kitty" ''
+                                    exec ${lib.getExe self'.packages.myKitty} \
+                                         --class emacs \
+                                         -o window_padding_width=0 \
+                                         -o window_margin_width=0 \
+                                         -o tab_bar_style=hidden \
+                                         ${self'.packages.myEmacs}/bin/emacs -nw "$@"
+               '';
+
+               packages.emacs-kitty-desktop = pkgs.makeDesktopItem {
+                                            name = "emacs";
+                                            desktopName = "Emacs";
+                                            genericName = "Text Editor";
+                                            exec = "${self'.packages.emacs-kitty}/bin/emacs-kitty %F";
+                                            icon = "emacs";
+                                            terminal = false;
+                                            categories = [ "Development" "TextEditor" ];
+                                            mimeTypes = [ "text/plain" "text/x-org" ];
+               };
+
                packages.org-sync = pkgs.writeShellApplication {
                                  name = "org-sync";
                                  runtimeInputs = [
@@ -98,7 +118,7 @@
                };
             };
 
-        flake.nixosModules.emacs = { pkgs, ... }:
+        flake.nixosModules.emacs = { pkgs, lib, ... }:
                                  let
                                     packages = withSystem pkgs.stdenv.hostPlatform.system
                                              ({ self', ... }: self'.packages);
@@ -106,6 +126,8 @@
                                     {
                                         environment.systemPackages = with pkgs; [
                                                                    packages.myEmacs
+                                                                   packages.emacs-kitty
+                                                                   (lib.hiPrio packages.emacs-kitty-desktop)
                                                                    packages.org-sync
                                                                    secretspec
                                                                    gnupg
@@ -115,6 +137,13 @@
                                                                    rsync
                                                                    elan
                                         ];
+
+                                        environment.sessionVariables.EDITOR = "emacs-kitty";
+
+                                        xdg.mime.defaultApplications = {
+                                                                     "text/plain" = [ "emacs.desktop" ];
+                                                                     "text/x-org" = [ "emacs.desktop" ];
+                                        };
 
                                         programs.gnupg.agent = {
                                                              enable = true;
