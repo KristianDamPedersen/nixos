@@ -33,6 +33,19 @@
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
 (setq doom-theme 'rose-pine-moon)
+
+;; The upstream theme gives function/variable names the same grey as comments
+;; and leaves search backgrounds unspecified. Keep its palette, with readable
+;; code names and explicit contrast for both the current and other matches.
+(custom-theme-set-faces! 'rose-pine-moon
+  '(font-lock-function-name-face :foreground "#ea9a97")
+  '(font-lock-variable-name-face :foreground "#e0def4")
+  '(isearch :foreground "#232136" :background "#f6c177" :inverse-video nil)
+  '(lazy-highlight :foreground "#232136" :background "#9ccfd8" :inverse-video nil)
+  '(evil-ex-search :inherit isearch
+    :foreground "#232136" :background "#f6c177" :inverse-video nil)
+  '(evil-ex-lazy-highlight :inherit lazy-highlight
+    :foreground "#232136" :background "#9ccfd8" :inverse-video nil))
 ;; Specify both a dark and light theme, like so and Doom will choose which one
 ;; to load based on your system light/dark setting:
 ;;
@@ -120,7 +133,23 @@
 (load custom-file t t)
 
 
+;; The Nix-built lsp-mode accessors expect plists; its runtime JSON parser
+;; must use the same representation to preserve request IDs and parameters.
+(setq lsp-use-plists t)
+
 (after! lean4-mode
+  (defun my-lean4-create-lsp-workspace ()
+    "Register the nearest Lake package or standalone Lean toolchain."
+    ;; The upstream function chooses the outermost lean-toolchain, which
+    ;; starts lake serve outside the Lake packages in a monorepo.
+    (when-let* ((file-name (buffer-file-name))
+                (root (or (lean4-lake-find-dir)
+                          (locate-dominating-file file-name "lean-toolchain"))))
+      (lsp-workspace-folders-add root)))
+
+  (advice-add 'lean4-create-lsp-workspace :override
+              #'my-lean4-create-lsp-workspace)
+
   (puthash "workspace/inlayHint/refresh"
            (lambda (_workspace _params) nil)
            (lsp--client-request-handlers
