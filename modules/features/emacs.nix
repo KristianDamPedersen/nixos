@@ -47,6 +47,11 @@
         wl-clipboard
         nil
         nixfmt
+        rust-analyzer
+        rustc
+        cargo
+        rustfmt
+        clippy
       ];
 
       doomBuildPkgs = import inputs.nixpkgs {
@@ -63,6 +68,7 @@
         extraPackages = epkgs: [
           (epkgs.treesit-grammars.with-grammars (grammars: [
             grammars.tree-sitter-nix
+            grammars.tree-sitter-rust
           ]))
         ];
 

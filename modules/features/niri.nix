@@ -60,6 +60,8 @@
             };
             layout.gaps = 5;
 
+            prefer-no-csd = _ : {  };
+
             layout.focus-ring = {
               active-color = "#ea9a97"; # Rose
               inactive-color = "#44415a"; # Highlight medium
