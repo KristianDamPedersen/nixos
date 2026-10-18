@@ -52,6 +52,9 @@
         cargo
         rustfmt
         clippy
+        nodejs
+        typescript
+        typescript-language-server
       ];
 
       doomBuildPkgs = import inputs.nixpkgs {
@@ -69,6 +72,10 @@
           (epkgs.treesit-grammars.with-grammars (grammars: [
             grammars.tree-sitter-nix
             grammars.tree-sitter-rust
+            grammars.tree-sitter-javascript
+            grammars.tree-sitter-jsdoc
+            grammars.tree-sitter-typescript
+            grammars.tree-sitter-tsx
           ]))
         ];
 
