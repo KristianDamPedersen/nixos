@@ -55,6 +55,7 @@
           in
           {
             workspaces = lib.genAttrs (map workspace keys) (_: { });
+            hotkey-overlay.skip-at-startup = _: {  };
             spawn-at-startup = [
               (lib.getExe self'.packages.myNoctalia)
               (lib.getExe self'.packages.first-window-width)

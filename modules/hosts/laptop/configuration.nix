@@ -24,6 +24,7 @@
         self.nixosModules.devenv
         self.nixosModules.signal
         self.nixosModules.steam
+        self.nixosModules.tailscale
       ];
 
       # Niri rendering override to fix slow external display and screen flickering
