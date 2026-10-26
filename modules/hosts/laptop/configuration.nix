@@ -24,6 +24,7 @@
         self.nixosModules.devenv
         self.nixosModules.signal
         self.nixosModules.steam
+        self.nixosModules.lutris
         self.nixosModules.tailscale
       ];
 
