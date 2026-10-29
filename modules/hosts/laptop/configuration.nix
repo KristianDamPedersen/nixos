@@ -26,6 +26,7 @@
         self.nixosModules.steam
         self.nixosModules.lutris
         self.nixosModules.tailscale
+        self.nixosModules.openscad
       ];
 
       # Niri rendering override to fix slow external display and screen flickering
