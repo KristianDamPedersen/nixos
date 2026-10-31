@@ -2,6 +2,29 @@
 {
   flake.nixosModules.codex = { pkgs, lib, ... }:
     let
+      ponytailSource = pkgs.fetchFromGitHub {
+        owner = "DietrichGebert";
+        repo = "ponytail";
+        rev = "96608e078b2d5ea607c5c3b8b5a54d1c1fba6846";
+        hash = "sha256-PhPtZbeX2wBp19GtWRy+fV93+fFYZe5S487eXPDl/us=";
+      };
+
+      ponytailSkills = lib.genAttrs [
+        "ponytail"
+        "ponytail-audit"
+        "ponytail-debt"
+        "ponytail-gain"
+        "ponytail-help"
+        "ponytail-review"
+      ] (name: "${ponytailSource}/skills/${name}");
+
+      cursorPluginsSource = pkgs.fetchFromGitHub {
+        owner = "cursor";
+        repo = "plugins";
+        rev = "4dd1d05818d19792e7cd6e818f1667f95f7e1dbe";
+        hash = "sha256-QW55Vg593fNhoQ2dUlr/HLV/5OkGORLZfencXEInbWk=";
+      };
+
       mattPocockSource = pkgs.fetchFromGitHub {
         owner = "mattpocock";
         repo = "skills";
@@ -41,13 +64,15 @@
         "writing-for-agents"
       ] (name: "${mattPocockSource}/skills/productivity/${name}");
       skills = {
+        thermo-nuclear-code-quality-review =
+          "${cursorPluginsSource}/cursor-team-kit/skills/thermo-nuclear-code-quality-review";
         unslop = pkgs.fetchFromGitHub {
           owner = "theclaymethod";
           repo = "unslop";
           rev = "17ed39c9d0b522f44190ff0c6233867eadee192a";
           hash = "sha256-M/w0ASIxhBmcSS2eNOh92IRb5hJg1cugLoCLbsC34Oo=";
         };
-      } // mattPocockSkills;
+      } // mattPocockSkills // ponytailSkills;
     in
     {
       environment.systemPackages = [
