@@ -6,6 +6,8 @@
       self.darwinModules.codex
       self.darwinModules.claudeCode
       self.darwinModules.github
+      self.darwinModules.devenv
+      self.darwinModules.omniwm
     ];
 
     nixpkgs.hostPlatform = "aarch64-darwin";
@@ -35,6 +37,16 @@
     environment.etc."nixos".source = "/Users/krdp/.dotfiles/nixos";
 
     time.timeZone = "Europe/Copenhagen";
+
+    # Free the screen edges for the tiling window manager: the menu bar and
+    # Dock stay hidden until the pointer reaches them.
+    system.defaults.NSGlobalDomain._HIHideMenuBar = true;
+    system.defaults.dock = {
+      autohide = true;
+      autohide-delay = 0.0;
+      autohide-time-modifier = 0.15;
+      show-recents = false;
+    };
 
     system.stateVersion = 7;
   };

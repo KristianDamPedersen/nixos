@@ -1,6 +1,7 @@
 { inputs, ... }:
-{
-  flake.nixosModules.devenv = { pkgs, ... }: {
+let
+  # Uses only options shared by NixOS and nix-darwin.
+  devenvModule = { pkgs, ... }: {
     environment.systemPackages = [
       inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv
     ];
@@ -16,4 +17,8 @@
 
     };
   };
+in
+{
+  flake.nixosModules.devenv = devenvModule;
+  flake.darwinModules.devenv = devenvModule;
 }
