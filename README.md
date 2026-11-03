@@ -206,3 +206,33 @@ sudo nixos-rebuild switch --flake /etc/nixos#laptop
 ```
 
 Restart Emacs after rebuilding its configuration.
+
+## macOS host (`inspari-macbook`)
+
+The MacBook uses nix-darwin. The checkout lives in `~/.dotfiles/nixos`; the
+configuration links it to `/etc/nixos`.
+
+First activation, with Nix already installed. nix-darwin refuses to replace
+`/etc` files it did not create, so move the installer's copies aside first:
+
+```bash
+for f in /etc/nix/nix.conf /etc/bashrc /etc/zshrc; do
+  [ -e "$f" ] && sudo mv "$f" "$f.before-nix-darwin"
+done
+sudo nix --extra-experimental-features 'nix-command flakes' \
+  run nix-darwin/master#darwin-rebuild -- \
+  switch --flake ~/.dotfiles/nixos#inspari-macbook
+```
+
+Moving `/etc/nix/nix.conf` aside also removes the installer's
+`experimental-features` setting, hence the explicit flag. nix-darwin writes a
+new `nix.conf` with flakes enabled.
+
+Log out and back in so apps launched from Finder or Spotlight see the
+launchd environment (kitty's `KITTY_CONFIG_DIRECTORY`).
+
+For later changes:
+
+```bash
+sudo darwin-rebuild switch --flake /etc/nixos#inspari-macbook
+```

@@ -7,8 +7,13 @@
   	Authenticate after rebuilding with:
   		gh auth login
 */
-{ self, inputs, ... }: {
-  flake.nixosModules.github = { pkgs, ... }: {
+{ self, inputs, ... }:
+let
+  github = { pkgs, ... }: {
     environment.systemPackages = [ pkgs.gh ];
   };
+in
+{
+  flake.nixosModules.github = github;
+  flake.darwinModules.github = github;
 }

@@ -52,4 +52,24 @@
 
     environment.sessionVariables.TERMINAL = "kitty";
   };
+
+  flake.darwinModules.kitty = { pkgs, ... }:
+    let
+      myKitty = withSystem pkgs.stdenv.hostPlatform.system ({ self', ... }: self'.packages.myKitty);
+    in
+    {
+      environment.systemPackages = [ myKitty ];
+
+      fonts.packages = [
+        pkgs.nerd-fonts.jetbrains-mono
+      ];
+
+      environment.variables.TERMINAL = "kitty";
+
+      # Only bin/kitty passes --config. Launching kitty.app from Finder or
+      # Spotlight runs the unwrapped binary, which reads its configuration
+      # from KITTY_CONFIG_DIRECTORY. The wrapped package keeps kitty.conf at
+      # its root.
+      launchd.user.envVariables.KITTY_CONFIG_DIRECTORY = "${myKitty}";
+    };
 }

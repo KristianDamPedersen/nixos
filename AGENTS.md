@@ -13,7 +13,9 @@ https://github.com/mightyiam/dendritic
 - `config/`: application configuration and generated hardware configuration.
 - `README.md`: installation and operational instructions.
 
-The current NixOS configuration outputs are `laptop` and `vm`.
+The current NixOS configuration outputs are `laptop` and `vm`. The
+nix-darwin configuration output is `inspari-macbook` (aarch64-darwin, macOS
+user `krdp`).
 The flake's supported systems list does not imply every feature supports
 every platform.
 
@@ -23,12 +25,24 @@ every platform.
   automatically by import-tree, including host `default.nix` files.
 - Organize modules around features. Keep a feature's package definitions,
   wrappers, and NixOS integration together where practical.
-- Follow existing interfaces: `flake.nixosModules.<name>` for NixOS modules
-  and `perSystem.packages.<name>` for configured packages.
+- Follow existing interfaces: `flake.nixosModules.<name>` for NixOS modules,
+  `flake.darwinModules.<name>` for nix-darwin modules (declared in
+  `modules/darwin-modules.nix`), and `perSystem.packages.<name>` for
+  configured packages.
+- A feature that supports both platforms defines both module classes in the
+  same file. Share the module body when it uses only options common to NixOS
+  and nix-darwin; otherwise write a separate Darwin module.
 - Define lower-level NixOS modules inside top-level modules. Do not add bare
   NixOS modules to the automatically imported tree.
 - Importing a feature's NixOS module should enable that feature. Avoid adding
   redundant custom enable options.
+- A feature module that other features import (e.g. `codex`, `claudeCode`,
+  `agentConfig`) sets `key` so the module system loads it once when a host
+  also imports it directly.
+- Shared agent configuration lives in the `agentConfig` module: skills in
+  `config.agentSkills` and standing instructions in
+  `config.agentInstructions`. Agent features publish both in their own
+  locations.
 - Multiple files may contribute to the same named module; preserve module
   merging rather than inventing a separate module name for every file.
 - Use top-level lexical scope, `self`, and `withSystem` to share values and
@@ -89,13 +103,24 @@ git diff --check
 nix flake check --no-build --no-update-lock-file
 ```
 
-Evaluate each affected host explicitly, replacing `<host>` with `laptop`
-or `vm`:
+Evaluate each affected NixOS host explicitly, replacing `<host>` with
+`laptop` or `vm`:
 
 ```sh
 nix eval --raw --no-update-lock-file \
   .#nixosConfigurations.<host>.config.system.build.toplevel.drvPath
 ```
+
+For the Darwin host:
+
+```sh
+nix eval --raw --no-update-lock-file \
+  .#darwinConfigurations.inspari-macbook.system.drvPath
+```
+
+On the Mac, `nix flake check --no-build` fails at `packages.aarch64-darwin.myEmacs`
+because Doom Emacs uses import-from-derivation, and full NixOS evaluation
+needs an x86_64-linux builder for the same reason.
 
 For changes requiring build validation:
 
@@ -117,8 +142,9 @@ nix build --no-link --no-update-lock-file \
 ## Operational boundaries
 
 - Building a configuration and activating it are separate actions.
-- Run `nixos-rebuild switch`, `test`, or `boot`, restart services, or reboot
-  only when the user's request authorizes those actions.
+- Run `nixos-rebuild` or `darwin-rebuild` `switch`, `test`, or `boot`,
+  restart services, or reboot only when the user's request authorizes those
+  actions.
 - Disk formatting, installation, partition changes, and destructive cleanup
   require explicit authorization for the concrete operation.
 - Never place plaintext secrets or private keys in repository files,
