@@ -6,9 +6,9 @@
   the next login. See docs/research/macos-tiling-window-managers.md.
 
   OmniWM reads ~/.config/omniwm/settings.toml and the settings window writes
-  back to it, so the file stays mutable. When it is missing, the agent seeds
-  it from config/omniwm/settings.toml. Changes made in the settings window
-  stay local until copied back into the repo.
+  back to it. The agent links that path to config/omniwm/settings.toml in the
+  checkout, so settings-window changes show up as Git diffs. OmniWM rewrites
+  the link's target and strips comments, so explanations belong here.
 
   Accessibility and Input Monitoring must be granted by hand on first launch.
 */
@@ -28,9 +28,11 @@ let
       }
     );
 
-  # OmniWM validates settings.toml strictly and rejects partial files,
-  # so only a complete file exported by OmniWM belongs here.
-  seed = ../../config/omniwm/settings.toml;
+  # A mutable path into the checkout, not a store path, because OmniWM writes
+  # to it. /etc/nixos points at the checkout on every host. OmniWM validates
+  # settings.toml strictly and rejects partial files, so the repo copy must
+  # stay a complete file exported by OmniWM.
+  checkoutSettings = "/etc/nixos/config/omniwm/settings.toml";
 in
 {
   flake.darwinModules.omniwm =
@@ -42,10 +44,13 @@ in
         name = "omniwm-launcher";
         text = ''
           settings="$HOME/.config/omniwm/settings.toml"
-          if [ ! -e "$settings" ]; then
+          if [ "$(readlink "$settings")" != ${checkoutSettings} ]; then
             mkdir -p "$(dirname "$settings")"
-            # Copy rather than link: the settings window writes back.
-            install -m 0644 ${seed} "$settings"
+            # Keep a file written before the link existed.
+            if [ -e "$settings" ] && [ ! -L "$settings" ]; then
+              mv "$settings" "$settings.pre-link"
+            fi
+            ln -sfn ${checkoutSettings} "$settings"
           fi
           exec ${omniwm}/Applications/OmniWM.app/Contents/MacOS/OmniWM
         '';

@@ -11,13 +11,13 @@ tabRailAppIcons = false
 
 [borders]
 enabled = true
-width = 5.0
+width = 3.0
 
 [borders.color]
 alpha = 1.0
-blue = 0.979300037944676
-green = 1.0
-red = 0.08458520228437894
+blue = 0.098
+green = 0.502
+red = 0.996
 
 [clipboard]
 historyEnabled = false
@@ -45,13 +45,13 @@ raiseOnMouseFocus = false
 
 [gaps]
 fullscreenUsesOuterGaps = false
-size = 16.0
+size = 8.0
 
 [gaps.outer]
-bottom = 0.0
-left = 0.0
-right = 0.0
-top = 0.0
+bottom = 8.0
+left = 8.0
+right = 8.0
+top = 8.0
 
 [general]
 animationSpeed = 1.0
@@ -62,7 +62,7 @@ hyperKeyModifiers = "Control+Option+Shift+Command"
 ipcEnabled = false
 preventSleepEnabled = false
 systemHyperTrigger = "None"
-updateChecksEnabled = true
+updateChecksEnabled = false
 
 [gestures]
 fingerCount = 3
@@ -96,7 +96,7 @@ margin = 1
 
 [niri]
 alwaysCenterSingleColumn = false
-centerFocusedColumn = "never"
+centerFocusedColumn = "onOverflow"
 containerPrimarySpanPresets = [0.3333333333333333, 0.5, 0.6666666666666666]
 defaultContainerPrimarySpan = 0.5
 edgeGaps = true
@@ -113,30 +113,30 @@ mouseScrollSpeed = 1.0
 zoom = 1.0
 
 [overview.backdrop]
-alpha = 0.0
-blue = 0.08
-green = 0.05
-red = 0.05
+alpha = 0.85
+blue = 0.129
+green = 0.125
+red = 0.114
 
 [overview.windowBorders]
 
 [overview.windowBorders.hovered]
 alpha = 1.0
-blue = 1.0
-green = 0.6
-red = 0.4
+blue = 0.596
+green = 0.647
+red = 0.514
 
 [overview.windowBorders.normal]
-alpha = 0.5
-blue = 0.35
-green = 0.3
-red = 0.3
+alpha = 0.8
+blue = 0.271
+green = 0.286
+red = 0.314
 
 [overview.windowBorders.selected]
 alpha = 1.0
-blue = 0.4
-green = 0.8
-red = 0.3
+blue = 0.098
+green = 0.502
+red = 0.996
 
 [quakeTerminal]
 animationDuration = 0.2
@@ -151,8 +151,22 @@ position = "center"
 widthPercent = 50.0
 
 [routing]
-arrangements = []
-mode = "macOS"
+mode = "custom"
+
+[[routing.arrangements]]
+id = "1ED0F15A-5ECB-4AE7-B941-7B0028CDFE90"
+
+[[routing.arrangements.monitors]]
+gridColumn = 0
+gridRow = 0
+monitorDisplayUUID = "C0D596C8-747A-44B7-9281-AD8ECF9A2214"
+monitorName = "LG HDR WQHD"
+
+[[routing.arrangements.monitors]]
+gridColumn = 0
+gridRow = 1
+monitorDisplayUUID = "37D8832A-2D66-02CA-B9F7-8F30A301B230"
+monitorName = "Indbygget Retina-skærm"
 
 [scratchpads]
 
@@ -168,7 +182,7 @@ useWorkspaceId = false
 autoHide = false
 autoHideHideDelayMilliseconds = 0.0
 autoHideRevealDelayMilliseconds = 0.0
-backgroundOpacity = 0.1
+backgroundOpacity = 0.0
 deduplicateAppIcons = false
 enabled = true
 excludedBundleIDs = []
@@ -176,6 +190,7 @@ height = 24.0
 hideEmptyWorkspaces = false
 hideInNativeFullscreen = false
 hoverPreviewsEnabled = true
+inactiveIconOpacity = 0.6
 notchActiveZoneWidth = 180.0
 notchMode = "moveBelowMenuBar"
 notificationBadgeRefreshIntervalSeconds = 5.0
@@ -195,7 +210,19 @@ windowLevel = "popup"
 xOffset = 0.0
 yOffset = 0.0
 
+[workspaceBar.accentColor]
+alpha = 1.0
+blue = 0.098
+green = 0.502
+red = 0.996
+
 [workspaceBar.iconOverrides]
+
+[workspaceBar.textColor]
+alpha = 1.0
+blue = 0.698
+green = 0.859
+red = 0.922
 
 [[appRules]]
 bundleId = "com.openai.codex"
