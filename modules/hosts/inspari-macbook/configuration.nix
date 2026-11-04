@@ -1,5 +1,9 @@
-{ self, ... }: {
-  flake.darwinModules.inspariMacbookConfiguration = { ... }: {
+{ self, withSystem, ... }: {
+  flake.darwinModules.inspariMacbookConfiguration = { pkgs, ... }:
+    let
+      self' = withSystem pkgs.stdenv.hostPlatform.system ({ self', ... }: self');
+    in
+    {
     imports = [
       self.darwinModules.kitty
       self.darwinModules.herdr
@@ -11,6 +15,12 @@
     ];
 
     nixpkgs.hostPlatform = "aarch64-darwin";
+
+    # Noctalia generates the shared kitty theme on Linux only; this machine
+    # uses Gruvbox instead.
+    programs.kitty.package = self'.packages.myKitty.wrap {
+      themeFile = "gruvbox-dark";
+    };
 
     # Allow unfree packages (claude-code)
     nixpkgs.config.allowUnfree = true;
