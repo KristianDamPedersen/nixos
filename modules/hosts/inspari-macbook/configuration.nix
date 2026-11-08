@@ -14,6 +14,7 @@
       self.darwinModules.omniwm
       self.darwinModules.signal
       self.darwinModules.neovim
+      self.darwinModules.cava
     ];
 
     nixpkgs.hostPlatform = "aarch64-darwin";
