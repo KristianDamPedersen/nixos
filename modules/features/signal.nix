@@ -69,4 +69,11 @@
         configuredSignal
       ];
     };
+
+  # macOS launches Signal.app from /Applications/Nix Apps, which bypasses
+  # the bin wrapper, so the Linux preference script is not used here. Signal
+  # follows the macOS appearance by default.
+  flake.darwinModules.signal = { pkgs, ... }: {
+    environment.systemPackages = [ pkgs.signal-desktop ];
+  };
 }

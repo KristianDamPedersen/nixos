@@ -12,6 +12,7 @@
       self.darwinModules.github
       self.darwinModules.devenv
       self.darwinModules.omniwm
+      self.darwinModules.signal
       self.darwinModules.neovim
     ];
 
