@@ -111,6 +111,7 @@ let
           rev = "17ed39c9d0b522f44190ff0c6233867eadee192a";
           hash = "sha256-M/w0ASIxhBmcSS2eNOh92IRb5hJg1cugLoCLbsC34Oo=";
         };
+        design-interfaces = ./agent-skills/design-interfaces;
         well-architected-review = ./agent-skills/well-architected-review;
       } // mattPocockSkills // ponytailSkills;
     };
