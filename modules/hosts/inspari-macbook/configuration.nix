@@ -9,6 +9,7 @@
       self.darwinModules.herdr
       self.darwinModules.codex
       self.darwinModules.claudeCode
+      self.darwinModules.opencode
       self.darwinModules.github
       self.darwinModules.devenv
       self.darwinModules.omniwm

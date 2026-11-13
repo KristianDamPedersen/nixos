@@ -1,6 +1,6 @@
 { ... }:
 let
-  # Configuration shared by the coding agents (Codex, Claude Code): Agent
+  # Configuration shared by the coding agents (Codex, Claude Code, OpenCode): Agent
   # Skills and standing instructions. Agent features import this module and
   # publish both in their own locations; hosts may add skills.
   agentConfigModule = { pkgs, lib, ... }:
@@ -68,7 +68,7 @@ let
       ] (name: "${mattPocockSource}/skills/productivity/${name}");
     in
     {
-      # Codex and Claude Code both import this module; the key lets the module
+      # The agent features all import this module; the key lets the module
       # system load it once.
       key = "agentConfig";
 
