@@ -18,6 +18,7 @@
       self.darwinModules.cava
       self.darwinModules.snowmachine
       self.darwinModules.btop
+      self.darwinModules.passwordManager
     ];
 
     nixpkgs.hostPlatform = "aarch64-darwin";

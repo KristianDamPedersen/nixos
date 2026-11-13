@@ -16,4 +16,9 @@
     programs._1password-gui.enable = true;
     programs._1password-gui.polkitPolicyOwners = [ "kristian" ];
   };
+
+  # macOS installs only the CLI; the 1Password app is managed outside Nix.
+  flake.darwinModules.passwordManager = { ... }: {
+    programs._1password.enable = true;
+  };
 }
