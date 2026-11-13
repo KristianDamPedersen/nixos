@@ -36,7 +36,8 @@ require("lazy").setup({
   checker = { enabled = true, notify = false },
   performance = {
     rtp = {
-      paths = { configdir },
+      -- NVIM_SPELL_DIR holds the Danish spell file built by Nix.
+      paths = { configdir, vim.env.NVIM_SPELL_DIR },
       disabled_plugins = {
         "gzip",
         "tarPlugin",
