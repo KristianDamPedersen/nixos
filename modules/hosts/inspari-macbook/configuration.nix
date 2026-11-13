@@ -39,6 +39,10 @@
       "flakes"
     ];
 
+    # Run an aarch64-linux NixOS VM as a remote builder so this machine can
+    # build aarch64-linux derivations locally.
+    nix.linux-builder.enable = true;
+
     networking = {
       hostName = "inspari-macbook";
       computerName = "inspari-macbook";
