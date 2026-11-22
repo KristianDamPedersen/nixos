@@ -27,7 +27,9 @@
         self.nixosModules.lutris
         self.nixosModules.tailscale
         self.nixosModules.openscad
+        self.nixosModules.openssl
         self.nixosModules.woodpeckerCi
+        self.nixosModules.etcher
       ];
 
       # Woodpecker is published on this machine's tailnet name through Tailscale Funnel.
