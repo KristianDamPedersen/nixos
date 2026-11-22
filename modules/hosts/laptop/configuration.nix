@@ -27,7 +27,15 @@
         self.nixosModules.lutris
         self.nixosModules.tailscale
         self.nixosModules.openscad
+        self.nixosModules.woodpeckerCi
       ];
+
+      # Woodpecker is published on this machine's tailnet name through Tailscale Funnel.
+      services.woodpecker-server.environment.WOODPECKER_HOST = "https://asus-srv.tail0502bb.ts.net";
+
+      # The laptop runs as the CI server: keep it running with the lid closed on
+      # mains power. On battery it still suspends.
+      services.logind.settings.Login.HandleLidSwitchExternalPower = "ignore";
 
       # Niri rendering override to fix slow external display and screen flickering
       programs.niri.package = lib.mkForce (
