@@ -57,6 +57,11 @@
             file = "/var/lib/woodpecker-secrets/actify-ghcr-token";
             events = [ "push" ];
           };
+          # Tags and GitHub releases for the edge releases on pushes to main.
+          release_token = {
+            file = "/var/lib/woodpecker-secrets/actify-release-token";
+            events = [ "push" ];
+          };
         };
       };
 

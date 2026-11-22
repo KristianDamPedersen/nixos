@@ -268,6 +268,9 @@ before the first rebuild that includes the feature.
      can't push packages): Personal access tokens → Tokens (classic) → Generate
      new token (classic), with only the `write:packages` scope (GitHub adds
      `read:packages`).
+   - `actify-release-token`, used by `release` to push the edge release tags and
+     create the GitHub releases: a fine-grained token like `actify-gh-read-token`
+     (only `actify`), with Repository permissions → Contents: Read and write.
 
    When a token expires, create a new one, update 1Password and the file
    (step 7), and start `woodpecker-repositories` again.
@@ -281,9 +284,10 @@ before the first rebuild that includes the feature.
    | `api-token` | `woodpecker-api-token` |
    | `actify-gh-read-token` | `actify-gh-read-token` |
    | `actify-ghcr-token` | `actify-ghcr-token` |
+   | `actify-release-token` | `actify-release-token` |
 
    ```bash
-   for f in api-token actify-gh-read-token actify-ghcr-token; do
+   for f in api-token actify-gh-read-token actify-ghcr-token actify-release-token; do
      sudo install -m 0600 /dev/null /var/lib/woodpecker-secrets/$f
      sudoedit /var/lib/woodpecker-secrets/$f
    done
