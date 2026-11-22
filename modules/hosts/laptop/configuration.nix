@@ -11,6 +11,7 @@
         self.nixosModules.laptopHardware
         self.nixosModules.niri
         self.nixosModules.breakpadWorkaround
+        self.nixosModules.btop
         self.nixosModules.github
         self.nixosModules.git
         self.nixosModules.passwordManager
