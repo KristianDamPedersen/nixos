@@ -254,33 +254,36 @@ before the first rebuild that includes the feature.
 
 5. Open `https://asus-srv.tail0502bb.ts.net` and sign in with GitHub once; that
    creates the admin user. Its access token is under User settings → CLI & API.
-6. In 1Password, create a vault named `CI` (service accounts can't read the
-   Personal or Private vault) with three API Credential items, the value in the
-   `credential` field:
+6. Store the access token and the repository secrets declared in
+   `woodpeckerCi.repositories` (`modules/hosts/laptop/configuration.nix`) as
+   root-only files. Keep the originals in 1Password.
 
-   | Item | Value |
+   | File in `/var/lib/woodpecker-secrets/` | Value |
    |---|---|
-   | `woodpecker-api-token` | the Woodpecker access token from step 5 |
+   | `api-token` | the Woodpecker access token from step 5 |
    | `actify-gh-read-token` | a fine-grained GitHub token on `KristianDamPedersen/actify` with Pull requests: Read |
    | `actify-ghcr-token` | a classic GitHub token with only `write:packages` |
 
-   Create a service account with read access to `CI` only (Developer → Service
-   accounts, or `op service-account create`), and store its token on the machine,
-   the only CI secret kept on disk besides the env files above:
-
    ```bash
-   sudo install -m 0600 /dev/null /var/lib/woodpecker-secrets/op-service-account-token
-   sudoedit /var/lib/woodpecker-secrets/op-service-account-token
+   for f in api-token actify-gh-read-token actify-ghcr-token; do
+     sudo install -m 0600 /dev/null /var/lib/woodpecker-secrets/$f
+     sudoedit /var/lib/woodpecker-secrets/$f
+   done
    sudo systemctl start woodpecker-repositories
    journalctl -u woodpecker-repositories -b
    ```
 
-   The service reads the references in `woodpeckerCi`
-   (`modules/hosts/laptop/configuration.nix`), activates the declared
-   repositories, and applies their settings and secrets. It runs again after
-   each rebuild that changes the declaration; after rotating a value in
-   1Password, start it by hand. Only declare repositories whose contributors you
-   trust: pipelines run on this machine as a user in the `docker` group.
+   The service activates the declared repositories and applies their settings
+   and secrets. It runs again after each rebuild that changes the declaration;
+   after changing a file, start it by hand. Only declare repositories whose
+   contributors you trust: pipelines run on this machine as a user in the
+   `docker` group.
+
+   Secrets can instead come from 1Password references (`reference =
+   "op://vault/item/field"`), read with a service account whose token is in
+   `/var/lib/woodpecker-secrets/op-service-account-token`. Service accounts
+   can't read the Personal, Private or Employee vault, so the items need a vault
+   of their own.
 
 The machine keeps running with the lid closed while on mains power. Funnel
 persists across reboots; `sudo tailscale funnel status` shows it, and
