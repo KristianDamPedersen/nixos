@@ -253,16 +253,34 @@ before the first rebuild that includes the feature.
    ```
 
 5. Open `https://asus-srv.tail0502bb.ts.net` and sign in with GitHub once; that
-   creates the admin user. Its access token is under User settings → CLI & API.
-6. Store the access token and the repository secrets declared in
-   `woodpeckerCi.repositories` (`modules/hosts/laptop/configuration.nix`) as
-   root-only files. Keep the originals in 1Password.
+   creates the admin user. Copy its access token from the avatar menu → User
+   settings → CLI & API (`/user/cli-and-api`) and save it in 1Password as
+   `woodpecker-api-token`.
+6. Create the two GitHub tokens the Actify pipelines use, and save each in
+   1Password under the name shown:
+   - `actify-gh-read-token`, read by `pr-metadata` for the PR title and body:
+     GitHub → Settings → Developer settings → Personal access tokens →
+     Fine-grained tokens → Generate new token. Resource owner
+     `KristianDamPedersen`; Repository access: Only select repositories →
+     `actify`; Repository permissions → Pull requests: Read-only (GitHub adds
+     Metadata: Read-only).
+   - `actify-ghcr-token`, used by `images` to push to GHCR (fine-grained tokens
+     can't push packages): Personal access tokens → Tokens (classic) → Generate
+     new token (classic), with only the `write:packages` scope (GitHub adds
+     `read:packages`).
 
-   | File in `/var/lib/woodpecker-secrets/` | Value |
+   When a token expires, create a new one, update 1Password and the file
+   (step 7), and start `woodpecker-repositories` again.
+7. Copy the access token and the repository secrets declared in
+   `woodpeckerCi.repositories` (`modules/hosts/laptop/configuration.nix`) from
+   1Password to root-only files; paste each value into the editor `sudoedit`
+   opens:
+
+   | File in `/var/lib/woodpecker-secrets/` | 1Password item |
    |---|---|
-   | `api-token` | the Woodpecker access token from step 5 |
-   | `actify-gh-read-token` | a fine-grained GitHub token on `KristianDamPedersen/actify` with Pull requests: Read |
-   | `actify-ghcr-token` | a classic GitHub token with only `write:packages` |
+   | `api-token` | `woodpecker-api-token` |
+   | `actify-gh-read-token` | `actify-gh-read-token` |
+   | `actify-ghcr-token` | `actify-ghcr-token` |
 
    ```bash
    for f in api-token actify-gh-read-token actify-ghcr-token; do
@@ -273,8 +291,9 @@ before the first rebuild that includes the feature.
    journalctl -u woodpecker-repositories -b
    ```
 
-   The service activates the declared repositories and applies their settings
-   and secrets. It runs again after each rebuild that changes the declaration;
+   The journal ends with `activated`, `settings applied` and one `secret …
+   applied` line per secret. The service activates the declared repositories
+   and applies their settings and secrets. It runs again after each rebuild that changes the declaration;
    after changing a file, start it by hand. Only declare repositories whose
    contributors you trust: pipelines run on this machine as a user in the
    `docker` group.
@@ -284,6 +303,10 @@ before the first rebuild that includes the feature.
    `/var/lib/woodpecker-secrets/op-service-account-token`. Service accounts
    can't read the Personal, Private or Employee vault, so the items need a vault
    of their own.
+8. Start a first pipeline: push a commit to an open pull request (an empty one
+   works: `git commit --allow-empty -m "ci: trigger Woodpecker"`), or close and
+   reopen it. Its statuses (`check`, `pr-metadata`) link to the log in
+   Woodpecker.
 
 The machine keeps running with the lid closed while on mains power. Funnel
 persists across reboots; `sudo tailscale funnel status` shows it, and
