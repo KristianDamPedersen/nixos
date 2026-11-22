@@ -233,6 +233,10 @@
         };
       };
 
+      # Pipelines run binaries that package managers download for generic Linux
+      # (npm packages such as biome); nix-ld lets NixOS run them.
+      programs.nix-ld.enable = true;
+
       # k3d clusters and Docker Compose stacks exhaust the default inotify
       # limits; a third local cluster hangs at create otherwise.
       boot.kernel.sysctl = {
