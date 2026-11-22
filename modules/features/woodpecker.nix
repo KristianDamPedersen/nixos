@@ -16,6 +16,13 @@
 
   The host sets WOODPECKER_HOST and publishes the server, for example with
   `tailscale funnel --bg 8000`.
+
+  Repositories and their secrets are declared in woodpeckerCi.repositories.
+  After every rebuild, woodpecker-repositories.service activates them and
+  applies their settings and secrets through the API. It needs a Woodpecker
+  access token of an admin (User settings → Access tokens) in
+  /var/lib/woodpecker-secrets/api-token; until then it does nothing. It never
+  removes repositories or secrets that aren't declared.
 */
 { inputs, ... }: {
   flake.nixosModules.woodpeckerCi =
@@ -23,8 +30,140 @@
     let
       secrets = "/var/lib/woodpecker-secrets";
       agentHome = "/var/lib/woodpecker-agent";
+      cfg = config.woodpeckerCi;
+      events = lib.types.enum [
+        "push"
+        "pull_request"
+        "pull_request_closed"
+        "pull_request_metadata"
+        "tag"
+        "release"
+        "deployment"
+        "cron"
+        "manual"
+      ];
+
+      # What the API gets: settings without unset values, secrets as file paths
+      # (the values are read at runtime and never enter the store).
+      declared = pkgs.writeText "woodpecker-repositories.json" (
+        builtins.toJSON (
+          lib.mapAttrs (_: repo: {
+            inherit (repo) forgeRemoteId;
+            settings = lib.filterAttrs (_: v: v != null) {
+              timeout = repo.timeout;
+              require_approval = repo.requireApproval;
+              cancel_previous_pipeline_events = repo.cancelPreviousPipelineEvents;
+            };
+            secrets = lib.mapAttrs (_: secret: { inherit (secret) file events; }) repo.secrets;
+          }) cfg.repositories
+        )
+      );
+
+      reconcile = pkgs.writeShellApplication {
+        name = "woodpecker-repositories";
+        runtimeInputs = [
+          pkgs.curl
+          pkgs.jq
+        ];
+        text = ''
+          server=http://${config.services.woodpecker-server.environment.WOODPECKER_SERVER_ADDR}
+          if [ ! -s ${cfg.apiTokenFile} ]; then
+            echo "No access token in ${cfg.apiTokenFile} yet; repositories not applied."
+            exit 0
+          fi
+          token=$(<${cfg.apiTokenFile})
+
+          # The token reaches curl as a header file from a builtin, so it never shows in the process list.
+          api() {
+            local method=$1 path=$2
+            shift 2
+            curl -fsS -X "$method" -H @<(printf 'Authorization: Bearer %s\n' "$token") \
+              -H 'Content-Type: application/json' "$server/api$path" "$@"
+          }
+
+          for _ in $(seq 60); do
+            curl -fsS "$server/healthz" >/dev/null 2>&1 && break
+            sleep 1
+          done
+
+          jq -r 'keys[]' ${declared} | while read -r name; do
+            remote=$(jq -r --arg n "$name" '.[$n].forgeRemoteId' ${declared})
+            if ! repo=$(api GET "/repos/lookup/$name" 2>/dev/null) || [ "$(jq -r .active <<<"$repo")" != true ]; then
+              repo=$(api POST "/repos?forge_remote_id=$remote")
+              echo "$name: activated"
+            fi
+            id=$(jq -r .id <<<"$repo")
+
+            jq -c --arg n "$name" '.[$n].settings' ${declared} | api PATCH "/repos/$id" --data @- >/dev/null
+            echo "$name: settings applied"
+
+            jq -r --arg n "$name" '.[$n].secrets | keys[]' ${declared} | while read -r secret; do
+              file=$(jq -r --arg n "$name" --arg s "$secret" '.[$n].secrets[$s].file' ${declared})
+              body=$(jq -n --arg name "$secret" --rawfile value "$file" \
+                --argjson events "$(jq -c --arg n "$name" --arg s "$secret" '.[$n].secrets[$s].events' ${declared})" \
+                '{name: $name, value: ($value | rtrimstr("\n")), events: $events}')
+              if api GET "/repos/$id/secrets/$secret" >/dev/null 2>&1; then
+                api PATCH "/repos/$id/secrets/$secret" --data @- >/dev/null <<<"$body"
+              else
+                api POST "/repos/$id/secrets" --data @- >/dev/null <<<"$body"
+              fi
+              echo "$name: secret $secret applied"
+            done
+          done
+        '';
+      };
     in
     {
+      options.woodpeckerCi = {
+        apiTokenFile = lib.mkOption {
+          type = lib.types.str;
+          default = "${secrets}/api-token";
+          description = "File with a Woodpecker admin access token, used to apply the declared repositories.";
+        };
+
+        repositories = lib.mkOption {
+          default = { };
+          description = "Repositories to activate, by full name (owner/name), with their settings and secrets.";
+          type = lib.types.attrsOf (
+            lib.types.submodule {
+              options = {
+                forgeRemoteId = lib.mkOption {
+                  type = lib.types.int;
+                  description = "The repository's ID on the forge: `gh api repos/<owner>/<name> --jq .id`.";
+                };
+                timeout = lib.mkOption {
+                  type = lib.types.nullOr lib.types.int;
+                  default = null;
+                  description = "Pipeline timeout in minutes; null keeps the server's default.";
+                };
+                requireApproval = lib.mkOption {
+                  type = lib.types.nullOr (lib.types.enum [ "none" "forks" "pull_requests" "all_events" ]);
+                  default = null;
+                };
+                cancelPreviousPipelineEvents = lib.mkOption {
+                  type = lib.types.nullOr (lib.types.listOf events);
+                  default = null;
+                  description = "Events whose older pipelines a newer one cancels.";
+                };
+                secrets = lib.mkOption {
+                  default = { };
+                  description = "Repository secrets by name. Each value is read from a root-only file at runtime.";
+                  type = lib.types.attrsOf (
+                    lib.types.submodule {
+                      options = {
+                        file = lib.mkOption { type = lib.types.str; };
+                        events = lib.mkOption { type = lib.types.listOf events; };
+                      };
+                    }
+                  );
+                };
+              };
+            }
+          );
+        };
+      };
+
+      config = {
       virtualisation.docker = {
         enable = true;
         autoPrune = {
@@ -121,6 +260,23 @@
         # "strict" would make the shared /tmp read-only; "full" still protects
         # /usr, /boot and /etc.
         ProtectSystem = lib.mkForce "full";
+      };
+
+      systemd.services.woodpecker-repositories = lib.mkIf (cfg.repositories != { }) {
+        description = "Apply the declared Woodpecker repositories";
+        wantedBy = [ "multi-user.target" ];
+        after = [ "woodpecker-server.service" ];
+        requires = [ "woodpecker-server.service" ];
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = lib.getExe reconcile;
+          # Root reads the root-only secret files; the rest of the system stays read-only.
+          ProtectSystem = "strict";
+          ProtectHome = true;
+          PrivateTmp = true;
+          NoNewPrivileges = true;
+        };
+      };
       };
     };
 }

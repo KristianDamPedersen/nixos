@@ -252,9 +252,29 @@ before the first rebuild that includes the feature.
    sudo tailscale funnel --bg 8000
    ```
 
-5. Open `https://asus-srv.tail0502bb.ts.net`, sign in with GitHub, and activate
-   the repositories to build. Only activate repositories whose contributors you
-   trust: pipelines run on this machine as a user in the `docker` group.
+5. Open `https://asus-srv.tail0502bb.ts.net` and sign in with GitHub once; that
+   creates the admin user. Under User settings → Access tokens, create a token
+   and store it, then the repository secrets declared in
+   `woodpeckerCi.repositories` (`modules/hosts/laptop/configuration.nix`):
+
+   ```bash
+   sudo install -m 0600 /dev/null /var/lib/woodpecker-secrets/api-token
+   sudoedit /var/lib/woodpecker-secrets/api-token
+   # Actify: a fine-grained token with Pull requests: Read on the repository,
+   # and a classic token with write:packages.
+   sudo install -m 0600 /dev/null /var/lib/woodpecker-secrets/actify-gh-read-token
+   sudoedit /var/lib/woodpecker-secrets/actify-gh-read-token
+   sudo install -m 0600 /dev/null /var/lib/woodpecker-secrets/actify-ghcr-token
+   sudoedit /var/lib/woodpecker-secrets/actify-ghcr-token
+   sudo systemctl start woodpecker-repositories
+   journalctl -u woodpecker-repositories -b
+   ```
+
+   The service activates the declared repositories and applies their settings
+   and secrets; it runs again after each rebuild that changes the declaration.
+   After changing a secret file, start it by hand. Only declare repositories
+   whose contributors you trust: pipelines run on this machine as a user in the
+   `docker` group.
 
 The machine keeps running with the lid closed while on mains power. Funnel
 persists across reboots; `sudo tailscale funnel status` shows it, and

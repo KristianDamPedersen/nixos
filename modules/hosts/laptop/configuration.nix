@@ -33,6 +33,30 @@
       # Woodpecker is published on this machine's tailnet name through Tailscale Funnel.
       services.woodpecker-server.environment.WOODPECKER_HOST = "https://asus-srv.tail0502bb.ts.net";
 
+      # Repositories this CI server builds. The secret files are created by hand on
+      # the machine (README, "Woodpecker CI").
+      woodpeckerCi.repositories."KristianDamPedersen/actify" = {
+        forgeRemoteId = 1467590016;
+        timeout = 60;
+        cancelPreviousPipelineEvents = [
+          "pull_request"
+          "pull_request_metadata"
+        ];
+        secrets = {
+          gh_read_token = {
+            file = "/var/lib/woodpecker-secrets/actify-gh-read-token";
+            events = [
+              "pull_request"
+              "pull_request_metadata"
+            ];
+          };
+          ghcr_token = {
+            file = "/var/lib/woodpecker-secrets/actify-ghcr-token";
+            events = [ "push" ];
+          };
+        };
+      };
+
       # The laptop runs as the CI server: keep it running with the lid closed on
       # mains power. On battery it still suspends.
       services.logind.settings.Login.HandleLidSwitchExternalPower = "ignore";
