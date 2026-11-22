@@ -33,8 +33,9 @@
       # Woodpecker is published on this machine's tailnet name through Tailscale Funnel.
       services.woodpecker-server.environment.WOODPECKER_HOST = "https://asus-srv.tail0502bb.ts.net";
 
-      # Repositories this CI server builds. The secret files are created by hand on
-      # the machine (README, "Woodpecker CI").
+      # Repositories this CI server builds. Secrets come from the 1Password vault
+      # "CI" through a service account (README, "Woodpecker CI").
+      woodpeckerCi.apiToken.reference = "op://CI/woodpecker-api-token/credential";
       woodpeckerCi.repositories."KristianDamPedersen/actify" = {
         forgeRemoteId = 1467590016;
         timeout = 60;
@@ -44,14 +45,14 @@
         ];
         secrets = {
           gh_read_token = {
-            file = "/var/lib/woodpecker-secrets/actify-gh-read-token";
+            reference = "op://CI/actify-gh-read-token/credential";
             events = [
               "pull_request"
               "pull_request_metadata"
             ];
           };
           ghcr_token = {
-            file = "/var/lib/woodpecker-secrets/actify-ghcr-token";
+            reference = "op://CI/actify-ghcr-token/credential";
             events = [ "push" ];
           };
         };

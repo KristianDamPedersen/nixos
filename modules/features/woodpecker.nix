@@ -20,9 +20,13 @@
   Repositories and their secrets are declared in woodpeckerCi.repositories.
   After every rebuild, woodpecker-repositories.service activates them and
   applies their settings and secrets through the API. It needs a Woodpecker
-  access token of an admin (User settings → Access tokens) in
-  /var/lib/woodpecker-secrets/api-token; until then it does nothing. It never
-  removes repositories or secrets that aren't declared.
+  access token of an admin (User settings → CLI & API); until it has one it
+  does nothing. It never removes repositories or secrets that aren't declared.
+
+  The access token and the secret values come from 1Password references
+  (op://vault/item/field), read with a 1Password service account whose token
+  is the one file kept on disk (woodpeckerCi.onePassword.tokenFile), or from
+  root-only files.
 */
 { inputs, ... }: {
   flake.nixosModules.woodpeckerCi =
@@ -43,8 +47,8 @@
         "manual"
       ];
 
-      # What the API gets: settings without unset values, secrets as file paths
-      # (the values are read at runtime and never enter the store).
+      # What the API gets: settings without unset values, and where each secret
+      # comes from (the values are read at runtime and never enter the store).
       declared = pkgs.writeText "woodpecker-repositories.json" (
         builtins.toJSON (
           lib.mapAttrs (_: repo: {
@@ -54,7 +58,7 @@
               require_approval = repo.requireApproval;
               cancel_previous_pipeline_events = repo.cancelPreviousPipelineEvents;
             };
-            secrets = lib.mapAttrs (_: secret: { inherit (secret) file events; }) repo.secrets;
+            secrets = lib.mapAttrs (_: secret: { inherit (secret) reference file events; }) repo.secrets;
           }) cfg.repositories
         )
       );
@@ -64,14 +68,37 @@
         runtimeInputs = [
           pkgs.curl
           pkgs.jq
+          config.programs._1password.package
         ];
         text = ''
           server=http://${config.services.woodpecker-server.environment.WOODPECKER_SERVER_ADDR}
-          if [ ! -s ${cfg.apiTokenFile} ]; then
-            echo "No access token in ${cfg.apiTokenFile} yet; repositories not applied."
+
+          if [ -s ${cfg.onePassword.tokenFile} ]; then
+            OP_SERVICE_ACCOUNT_TOKEN=$(<${cfg.onePassword.tokenFile})
+            export OP_SERVICE_ACCOUNT_TOKEN
+          fi
+
+          # Prints a secret without a trailing newline: from a 1Password reference
+          # ($1) if given, otherwise from a file ($2).
+          read_value() {
+            if [ -n "$1" ]; then
+              if [ -z "''${OP_SERVICE_ACCOUNT_TOKEN:-}" ]; then
+                echo "No 1Password service account token in ${cfg.onePassword.tokenFile}." >&2
+                return 1
+              fi
+              op read --no-newline "$1"
+            else
+              local value
+              value=$(<"$2")
+              printf '%s' "$value"
+            fi
+          }
+
+          # A missing token is the normal state before the first sign-in, so it isn't a failure.
+          if ! token=$(read_value "${toString cfg.apiToken.reference}" "${cfg.apiToken.file}") || [ -z "$token" ]; then
+            echo "No Woodpecker access token yet (see the error above); repositories not applied."
             exit 0
           fi
-          token=$(<${cfg.apiTokenFile})
 
           # The token reaches curl as a header file from a builtin, so it never shows in the process list.
           api() {
@@ -98,10 +125,12 @@
             echo "$name: settings applied"
 
             jq -r --arg n "$name" '.[$n].secrets | keys[]' ${declared} | while read -r secret; do
-              file=$(jq -r --arg n "$name" --arg s "$secret" '.[$n].secrets[$s].file' ${declared})
-              body=$(jq -n --arg name "$secret" --rawfile value "$file" \
-                --argjson events "$(jq -c --arg n "$name" --arg s "$secret" '.[$n].secrets[$s].events' ${declared})" \
-                '{name: $name, value: ($value | rtrimstr("\n")), events: $events}')
+              reference=$(jq -r --arg n "$name" --arg s "$secret" '.[$n].secrets[$s].reference // ""' ${declared})
+              file=$(jq -r --arg n "$name" --arg s "$secret" '.[$n].secrets[$s].file // ""' ${declared})
+              events=$(jq -c --arg n "$name" --arg s "$secret" '.[$n].secrets[$s].events' ${declared})
+              # The value reaches jq on stdin, never as an argument.
+              body=$(read_value "$reference" "$file" | jq -n --arg name "$secret" --rawfile value /dev/stdin \
+                --argjson events "$events" '{name: $name, value: $value, events: $events}')
               if api GET "/repos/$id/secrets/$secret" >/dev/null 2>&1; then
                 api PATCH "/repos/$id/secrets/$secret" --data @- >/dev/null <<<"$body"
               else
@@ -115,10 +144,24 @@
     in
     {
       options.woodpeckerCi = {
-        apiTokenFile = lib.mkOption {
+        onePassword.tokenFile = lib.mkOption {
           type = lib.types.str;
-          default = "${secrets}/api-token";
-          description = "File with a Woodpecker admin access token, used to apply the declared repositories.";
+          default = "${secrets}/op-service-account-token";
+          description = "File with a 1Password service account token, used to read op:// references.";
+        };
+
+        apiToken = {
+          reference = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            example = "op://CI/Woodpecker asus-srv/credential";
+            description = "1Password reference to a Woodpecker admin access token. Overrides `file`.";
+          };
+          file = lib.mkOption {
+            type = lib.types.str;
+            default = "${secrets}/api-token";
+            description = "File with a Woodpecker admin access token, used when `reference` is null.";
+          };
         };
 
         repositories = lib.mkOption {
@@ -147,11 +190,19 @@
                 };
                 secrets = lib.mkOption {
                   default = { };
-                  description = "Repository secrets by name. Each value is read from a root-only file at runtime.";
+                  description = "Repository secrets by name, each read at runtime from a 1Password reference or a root-only file.";
                   type = lib.types.attrsOf (
                     lib.types.submodule {
                       options = {
-                        file = lib.mkOption { type = lib.types.str; };
+                        reference = lib.mkOption {
+                          type = lib.types.nullOr lib.types.str;
+                          default = null;
+                          example = "op://CI/GitHub read token/credential";
+                        };
+                        file = lib.mkOption {
+                          type = lib.types.nullOr lib.types.str;
+                          default = null;
+                        };
                         events = lib.mkOption { type = lib.types.listOf events; };
                       };
                     }
@@ -164,6 +215,16 @@
       };
 
       config = {
+      assertions = lib.flatten (
+        lib.mapAttrsToList (
+          repo: r:
+          lib.mapAttrsToList (name: secret: {
+            assertion = (secret.reference == null) != (secret.file == null);
+            message = "woodpeckerCi.repositories.${repo}.secrets.${name}: set exactly one of reference and file.";
+          }) r.secrets
+        ) cfg.repositories
+      );
+
       virtualisation.docker = {
         enable = true;
         autoPrune = {
@@ -270,6 +331,10 @@
         serviceConfig = {
           Type = "oneshot";
           ExecStart = lib.getExe reconcile;
+          # The 1Password CLI needs a writable, private config directory.
+          RuntimeDirectory = "woodpecker-repositories";
+          RuntimeDirectoryMode = "0700";
+          Environment = [ "HOME=/run/woodpecker-repositories" ];
           # Root reads the root-only secret files; the rest of the system stays read-only.
           ProtectSystem = "strict";
           ProtectHome = true;
