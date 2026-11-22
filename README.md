@@ -207,6 +207,59 @@ sudo nixos-rebuild switch --flake /etc/nixos#laptop
 
 Restart Emacs after rebuilding its configuration.
 
+## 8. Woodpecker CI
+
+The laptop runs a Woodpecker server and one local-backend agent
+(`modules/features/woodpecker.nix`), published on its tailnet name
+`https://asus-srv.tail0502bb.ts.net` through Tailscale Funnel. Do these steps once,
+before the first rebuild that includes the feature.
+
+1. Register a GitHub OAuth app on the personal account (Settings → Developer
+   settings → OAuth Apps): homepage `https://asus-srv.tail0502bb.ts.net`, callback
+   `https://asus-srv.tail0502bb.ts.net/authorize`. Keep the client ID and secret in
+   1Password.
+2. In the Tailscale admin console, on the DNS page, enable MagicDNS and HTTPS
+   certificates. Allow Funnel in the access controls policy:
+
+   ```json
+   "nodeAttrs": [
+     { "target": ["autogroup:member"], "attr": ["funnel"] }
+   ]
+   ```
+
+3. Create the secrets, root-owned and mode 0600. The agent secret must match in
+   both files; keep a copy in 1Password.
+
+   ```bash
+   sudo install -d -m 0700 /var/lib/woodpecker-secrets
+   sudo install -m 0600 /dev/null /var/lib/woodpecker-secrets/server.env
+   sudo install -m 0600 /dev/null /var/lib/woodpecker-secrets/agent.env
+   secret=$(openssl rand -hex 32)
+   printf 'WOODPECKER_AGENT_SECRET=%s\n' "$secret" \
+     | sudo tee /var/lib/woodpecker-secrets/agent.env >/dev/null
+   printf 'WOODPECKER_AGENT_SECRET=%s\nWOODPECKER_GITHUB_CLIENT=<client id>\nWOODPECKER_GITHUB_SECRET=<client secret>\n' "$secret" \
+     | sudo tee /var/lib/woodpecker-secrets/server.env >/dev/null
+   unset secret
+   sudoedit /var/lib/woodpecker-secrets/server.env   # fill in the client ID and secret
+   ```
+
+4. Rebuild and publish the server:
+
+   ```bash
+   cd /etc/nixos && git pull
+   sudo nixos-rebuild switch --flake /etc/nixos#laptop
+   systemctl status woodpecker-server woodpecker-agent-local
+   sudo tailscale funnel --bg 8000
+   ```
+
+5. Open `https://asus-srv.tail0502bb.ts.net`, sign in with GitHub, and activate
+   the repositories to build. Only activate repositories whose contributors you
+   trust: pipelines run on this machine as a user in the `docker` group.
+
+The machine keeps running with the lid closed while on mains power. Funnel
+persists across reboots; `sudo tailscale funnel status` shows it, and
+`sudo tailscale funnel --https=443 off` removes it.
+
 ## macOS host (`inspari-macbook`)
 
 The MacBook uses nix-darwin. The checkout lives in `~/.dotfiles/nixos`; the
