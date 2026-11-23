@@ -266,6 +266,9 @@
           # Statuses named after the workflow (check, pr-metadata), like the
           # GitHub Actions jobs, so branch rules keep the same required names.
           WOODPECKER_STATUS_CONTEXT_FORMAT = "{{ .workflow }}";
+          # Fetching the pipeline files from GitHub timed out at the default 5 s while a heavy pipeline ran, which
+          # errors the new pipeline without a status.
+          WOODPECKER_FORGE_TIMEOUT = "30s";
         };
         environmentFile = [ "${secrets}/server.env" ];
       };
